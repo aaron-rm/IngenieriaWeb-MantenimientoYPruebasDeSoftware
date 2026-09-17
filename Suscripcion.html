@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Noticias SA Nacional – Suscripción</title>
+  <link rel="stylesheet" href="Style.css" />
+</head>
+
+<body class="tema-inicio">
+
+  <header>
+    <img src="Logo.png" alt="Logotipo de Noticias SA Nacional - Canal informativo panameño" class="logo-img" />
+    <div class="logo-texto">
+      <span class="marca">Noticias SA Nacional</span>
+      <span class="slogan">Siempre Informado · En Vivo</span>
+    </div>
+  </header>
+
+  <!-- Menú de navegación -->
+  <nav>
+    <a href="Home.html">Inicio</a>
+    <a href="Deportivas.html">Deportivas</a>
+    <a href="Internacionales.html">Internacionales</a>
+    <a href="Contactenos.html">Contáctanos</a>
+    <a href="Suscripcion.html" class="activo">Suscripción</a>
+  </nav>
+
+  <main>
+    <h2 class="titulo-seccion">Suscríbete a Nuestro Newsletter</h2>
+
+    <div style="max-width: 600px; margin: 0 auto;">
+      <p style="margin-bottom: 30px; line-height: 1.8;">
+        Recibe las noticias más importantes directamente en tu correo electrónico.
+        Mantente informado sobre las últimas noticias nacionales, deportivas e internacionales.
+      </p>
+
+      <form id="formulario-suscripcion" style="background: rgba(255,255,255,0.05); padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+
+        <!-- Nombre completo -->
+        <div style="margin-bottom: 20px;">
+          <label for="nombre" style="display: block; margin-bottom: 8px; font-weight: 700; color: #f1c40f;">
+            Nombre completo *
+          </label>
+          <input
+            type="text"
+            id="nombre"
+            name="nombre"
+            required
+            minlength="3"
+            maxlength="100"
+            placeholder="Ej: Juan Pérez"
+            style="width: 100%; padding: 12px; border: 2px solid rgba(241, 196, 15, 0.3); border-radius: 6px; background: rgba(255,255,255,0.9); font-family: 'Lato', sans-serif; font-size: 1rem; box-sizing: border-box;"
+            oninvalid="this.setCustomValidity('Por favor ingresa tu nombre completo (mínimo 3 caracteres)')"
+            oninput="this.setCustomValidity('')"
+          />
+        </div>
+
+        <!-- Email -->
+        <div style="margin-bottom: 20px;">
+          <label for="email" style="display: block; margin-bottom: 8px; font-weight: 700; color: #f1c40f;">
+            Correo electrónico *
+          </label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            required
+            placeholder="ejemplo@correo.com"
+            style="width: 100%; padding: 12px; border: 2px solid rgba(241, 196, 15, 0.3); border-radius: 6px; background: rgba(255,255,255,0.9); font-family: 'Lato', sans-serif; font-size: 1rem; box-sizing: border-box;"
+            oninvalid="this.setCustomValidity('Por favor ingresa un correo electrónico válido')"
+            oninput="this.setCustomValidity('')"
+          />
+        </div>
+
+        <!-- Teléfono -->
+        <div style="margin-bottom: 20px;">
+          <label for="telefono" style="display: block; margin-bottom: 8px; font-weight: 700; color: #f1c40f;">
+            Teléfono (opcional)
+          </label>
+          <input
+            type="tel"
+            id="telefono"
+            name="telefono"
+            pattern="[0-9\-\+\(\) ]{7,20}"
+            placeholder="Ej: 6000-0000"
+            style="width: 100%; padding: 12px; border: 2px solid rgba(241, 196, 15, 0.3); border-radius: 6px; background: rgba(255,255,255,0.9); font-family: 'Lato', sans-serif; font-size: 1rem; box-sizing: border-box;"
+            oninvalid="this.setCustomValidity('Por favor ingresa un número de teléfono válido')"
+            oninput="this.setCustomValidity('')"
+          />
+        </div>
+
+        <!-- Categorías de interés -->
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; margin-bottom: 12px; font-weight: 700; color: #f1c40f;">
+            Categorías de interés *
+          </label>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <label style="display: flex; align-items: center; cursor: pointer;">
+              <input type="checkbox" name="categoria" value="nacionales" required style="margin-right: 10px; width: 18px; height: 18px; cursor: pointer;" />
+              <span style="font-size: 0.95rem;">Noticias Nacionales</span>
+            </label>
+            <label style="display: flex; align-items: center; cursor: pointer;">
+              <input type="checkbox" name="categoria" value="deportivas" style="margin-right: 10px; width: 18px; height: 18px; cursor: pointer;" />
+              <span style="font-size: 0.95rem;">Deportivas</span>
+            </label>
+            <label style="display: flex; align-items: center; cursor: pointer;">
+              <input type="checkbox" name="categoria" value="internacionales" style="margin-right: 10px; width: 18px; height: 18px; cursor: pointer;" />
+              <span style="font-size: 0.95rem;">Internacionales</span>
+            </label>
+          </div>
+          <small style="display: block; margin-top: 6px; opacity: 0.7; font-size: 0.85rem;">
+            Selecciona al menos una categoría
+          </small>
+        </div>
+
+        <!-- Frecuencia -->
+        <div style="margin-bottom: 25px;">
+          <label for="frecuencia" style="display: block; margin-bottom: 8px; font-weight: 700; color: #f1c40f;">
+            Frecuencia de envío *
+          </label>
+          <select
+            id="frecuencia"
+            name="frecuencia"
+            required
+            style="width: 100%; padding: 12px; border: 2px solid rgba(241, 196, 15, 0.3); border-radius: 6px; background: rgba(255,255,255,0.9); font-family: 'Lato', sans-serif; font-size: 1rem; box-sizing: border-box; cursor: pointer;"
+          >
+            <option value="">-- Selecciona una opción --</option>
+            <option value="diario">Diario</option>
+            <option value="semanal">Semanal</option>
+            <option value="mensual">Mensual</option>
+          </select>
+        </div>
+
+        <!-- Términos y condiciones -->
+        <div style="margin-bottom: 25px;">
+          <label style="display: flex; align-items: start; cursor: pointer;">
+            <input type="checkbox" name="terminos" required style="margin-right: 10px; margin-top: 4px; width: 18px; height: 18px; cursor: pointer; flex-shrink: 0;" />
+            <span style="font-size: 0.9rem; line-height: 1.6;">
+              Acepto los términos y condiciones y la política de privacidad. Autorizo el uso de mis datos para el envío de newsletters. *
+            </span>
+          </label>
+        </div>
+
+        <!-- Botones -->
+        <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+          <button
+            type="submit"
+            style="background: #c0392b; color: white; border: none; padding: 14px 36px; border-radius: 6px; font-family: 'Lato', sans-serif; font-size: 1rem; font-weight: 700; cursor: pointer; transition: background 0.3s ease; box-shadow: 0 4px 12px rgba(192, 57, 43, 0.4);"
+            onmouseover="this.style.background='#a93226'"
+            onmouseout="this.style.background='#c0392b'"
+          >
+            Suscribirme
+          </button>
+          <button
+            type="reset"
+            style="background: transparent; color: #dce3ec; border: 2px solid rgba(241, 196, 15, 0.5); padding: 14px 36px; border-radius: 6px; font-family: 'Lato', sans-serif; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease;"
+            onmouseover="this.style.background='rgba(241, 196, 15, 0.1)'; this.style.borderColor='#f1c40f'"
+            onmouseout="this.style.background='transparent'; this.style.borderColor='rgba(241, 196, 15, 0.5)'"
+          >
+            Limpiar
+          </button>
+        </div>
+
+        <p style="margin-top: 20px; text-align: center; font-size: 0.85rem; opacity: 0.7;">
+          * Campos obligatorios
+        </p>
+
+      </form>
+
+      <div id="mensaje-exito" style="display: none; margin-top: 25px; padding: 20px; background: rgba(46, 204, 113, 0.2); border: 2px solid #2ecc71; border-radius: 8px; text-align: center;">
+        <p style="color: #2ecc71; font-weight: 700; font-size: 1.1rem; margin: 0;">
+          ¡Suscripción exitosa! Recibirás nuestro newsletter pronto.
+        </p>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p class="footer-etiqueta">Secciones del sitio</p>
+    <ul class="footer-nav">
+      <li><a href="Home.html">Inicio</a></li>
+      <li><a href="Deportivas.html">Deportivas</a></li>
+      <li><a href="Internacionales.html">Internacionales</a></li>
+      <li><a href="Contactenos.html">Contáctanos</a></li>
+      <li><a href="Suscripcion.html">Suscripción</a></li>
+    </ul>
+    <p class="footer-copy">&copy; 2026 Noticias SA Nacional. Todos los derechos reservados.</p>
+  </footer>
+
+  <script>
+    // Validación adicional del formulario
+    document.getElementById('formulario-suscripcion').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      // Validar que al menos un checkbox de categoría esté seleccionado
+      const checkboxes = document.querySelectorAll('input[name="categoria"]:checked');
+      if (checkboxes.length === 0) {
+        alert('Por favor selecciona al menos una categoría de interés');
+        return;
+      }
+
+      // Mostrar mensaje de éxito
+      document.getElementById('mensaje-exito').style.display = 'block';
+
+      // Limpiar formulario después de 2 segundos
+      setTimeout(() => {
+        this.reset();
+        document.getElementById('mensaje-exito').style.display = 'none';
+      }, 3000);
+    });
+  </script>
+
+</body>
+</html>
