@@ -1,0 +1,464 @@
+/* ============================================================
+   COMANDAS PAGE — fiel a slides 6 y 7 del wireframe
+   Fondo oscuro (#383838), cards blancas, número # grande bold
+   Botones: "En proceso" amarillo, "Listo" gris/oscuro
+   Tachar = checkbox negro checked
+   ============================================================ */
+
+/* Comandas use dark background like the wireframe */
+.comandas-body .main-content,
+body[data-page="comandas"] .main-content {
+  background: #2a2a2a;
+  color: var(--text-white);
+}
+body[data-page="comandas"] {
+  background: #2a2a2a;
+}
+
+.comandas-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--sp-4);
+  flex-wrap: wrap;
+  gap: var(--sp-4);
+}
+
+.queue-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  background: var(--yellow);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 700;
+  padding: var(--sp-2) var(--sp-4);
+  border-radius: var(--r-sm);
+}
+
+.queue-badge .queue-num {
+  font-size: 16px;
+  font-weight: 900;
+}
+
+/* Sección badge in topbar for comandas */
+.seccion-pill {
+  background: var(--yellow);
+  color: var(--text-primary);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: var(--r-sm);
+  white-space: nowrap;
+}
+
+/* View toggle */
+.view-toggle {
+  display: flex;
+  gap: var(--sp-2);
+}
+.toggle-btn {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.55);
+  padding: var(--sp-2) var(--sp-4);
+  border-radius: var(--r-sm);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+.toggle-btn:hover { color: rgba(255,255,255,0.85); }
+.toggle-btn.active {
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.3);
+  color: #fff;
+}
+
+/* Rules bar */
+.rules-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--r-sm);
+  padding: var(--sp-2) var(--sp-4);
+  margin-bottom: var(--sp-5);
+  font-size: 11px;
+  color: rgba(255,255,255,0.45);
+  flex-wrap: wrap;
+}
+
+/* Views */
+.cm-view { display: block; }
+.cm-view.hidden { display: none !important; }
+
+/* ============================================================
+   CARDS VIEW — slide 6
+   4 cards side by side, white cards on dark background
+   ============================================================ */
+.comanda-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--sp-4);
+  align-items: start;
+}
+
+/* Each comanda card — white card */
+.comanda-card {
+  background: var(--card-bg);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+/* Top color accent per card (matches wireframe: pink for #1, yellow for #2, neutral for others) */
+.comanda-card .card-accent {
+  height: 4px;
+  background: var(--card-border);
+}
+.comanda-card:nth-child(1) .card-accent { background: var(--pink); }
+.comanda-card:nth-child(2) .card-accent { background: var(--yellow); }
+.comanda-card:nth-child(3) .card-accent { background: #ccc; }
+.comanda-card:nth-child(4) .card-accent { background: #ccc; }
+
+.comanda-card.estado-listo { border: 2px solid var(--green); }
+
+/* Card header */
+.comanda-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: var(--sp-4) var(--sp-4) var(--sp-3);
+}
+
+.comanda-num {
+  font-size: 26px;
+  font-weight: 900;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.comanda-origin {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--pink);
+  margin-top: 2px;
+}
+
+.comanda-time {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+/* Items list */
+.comanda-items {
+  padding: 0 var(--sp-4) var(--sp-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  flex: 1;
+}
+
+.comanda-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: background var(--t-fast);
+}
+.comanda-item:hover { background: #f8f4ea; }
+
+/* Checkbox — dark rounded like wireframe */
+.item-check {
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid #ccc;
+  border-radius: 4px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  transition: all var(--t-fast);
+  margin-top: 1px;
+  background: var(--card-bg);
+}
+
+/* Checked = dark fill with white checkmark */
+.comanda-item.tachado .item-check {
+  background: var(--sidebar-bg);
+  border-color: var(--sidebar-bg);
+  color: var(--text-white);
+  font-size: 12px;
+}
+
+.item-info { flex: 1; }
+
+.item-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+.comanda-item.tachado .item-name {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+.item-note {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.item-qty {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+/* Footer with status buttons */
+.comanda-footer {
+  padding: var(--sp-3) var(--sp-4);
+  border-top: 1px solid #f0e8d0;
+  display: flex;
+  gap: var(--sp-2);
+}
+
+/* "En proceso" — yellow button like wireframe */
+.estado-btn.proceso {
+  flex: 1;
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-sm);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: all var(--t-fast);
+  background: var(--yellow);
+  color: var(--text-primary);
+}
+.estado-btn.proceso:hover { filter: brightness(0.92); }
+.estado-btn.proceso.inactive {
+  background: #f0e8d0;
+  color: var(--text-muted);
+}
+
+/* "Listo" — grey/light like wireframe */
+.estado-btn.listo {
+  flex: 1;
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-sm);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: all var(--t-fast);
+  background: #e8e0d0;
+  color: var(--text-secondary);
+}
+.estado-btn.listo:hover { background: #d0c8b8; }
+.estado-btn.listo.active {
+  background: var(--sidebar-bg);
+  color: var(--text-white);
+}
+
+/* "Listo — sale de fila" full-width dark like card #4 in wireframe */
+.btn-listo-full {
+  width: 100%;
+  background: var(--sidebar-bg);
+  color: var(--text-white);
+  border: none;
+  border-radius: var(--r-sm);
+  padding: var(--sp-3);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--t-fast);
+}
+.btn-listo-full:hover { background: #1a1a1a; }
+
+/* Greyed-out card — for items like #4 in wireframe */
+.comanda-card.all-done {
+  opacity: 0.65;
+  background: #e8e0d0;
+}
+.comanda-card.all-done .item-name { color: var(--text-muted); }
+
+/* Empty queue */
+.empty-queue {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-10);
+  color: rgba(255,255,255,0.35);
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+}
+.empty-queue .empty-icon { font-size: 48px; }
+
+/* ============================================================
+   BOARD VIEW — slide 7
+   Dark background, two columns, white cards inside
+   ============================================================ */
+.board-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-5);
+  align-items: start;
+}
+
+.board-col { display: flex; flex-direction: column; gap: var(--sp-4); }
+
+.board-col-header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding-bottom: var(--sp-3);
+  border-bottom: 2px solid;
+}
+
+.board-col-header.pending {
+  color: rgba(255,255,255,0.75);
+  border-color: var(--yellow);
+}
+.board-col-header.pending .col-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--yellow); }
+
+.board-col-header.ready {
+  color: rgba(255,255,255,0.75);
+  border-color: rgba(255,255,255,0.2);
+}
+.board-col-header.ready .col-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.4); }
+
+.board-count {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.45);
+}
+
+/* Board card — white on dark */
+.board-card {
+  background: var(--card-bg);
+  border-radius: var(--r-md);
+  padding: var(--sp-4);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.board-card.ready-card {
+  border: 2px solid var(--yellow);
+}
+
+.board-card-top {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+.board-card-num {
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--text-primary);
+}
+
+.board-card-origin {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--pink);
+}
+
+.board-card-time {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.board-items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-3);
+}
+
+.board-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.board-item .item-check {
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid #ccc;
+  border-radius: 3px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  background: var(--card-bg);
+}
+
+.board-item.done {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+.board-item.done .item-check {
+  background: var(--sidebar-bg);
+  border-color: var(--sidebar-bg);
+  color: #fff;
+}
+
+/* Listo badge on board card */
+.listo-pill {
+  background: var(--yellow);
+  color: var(--text-primary);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: var(--r-full);
+  margin-left: auto;
+}
+
+.confirm-delivery-btn {
+  width: 100%;
+  background: #f0ead8;
+  border: 1px dashed var(--card-border);
+  border-radius: var(--r-sm);
+  padding: var(--sp-3);
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--t-fast);
+  font-weight: 600;
+}
+.confirm-delivery-btn:hover { background: #e8e0c8; color: var(--text-primary); }
+
+/* Responsive */
+@media (max-width: 700px) {
+  .board-columns { grid-template-columns: 1fr; }
+  .comanda-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 480px) {
+  .comanda-grid { grid-template-columns: 1fr; }
+}
