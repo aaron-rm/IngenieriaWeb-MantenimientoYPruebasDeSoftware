@@ -1,0 +1,199 @@
+/* ============================================================
+   LOGIN PAGE — fiel al wireframe slide 2
+   Fondo: #fff8d9, card blanca, logo pink, botón pink full-width
+   Rol chips debajo del form, tabla de roles a la derecha
+   ============================================================ */
+
+
+.login-logo {
+  font-size: 40px;
+  font-weight: 900;
+  letter-spacing: -1.5px;
+  color: var(--text-primary);
+  line-height: 1;
+  font-style: italic;
+}
+
+.login-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+/* ---- Login card ---- */
+.login-card {
+  grid-area: card;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-6) var(--sp-6) var(--sp-5);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* MiPedido inside the card (as wireframe shows) */
+.card-logo {
+  text-align: center;
+  margin-bottom: var(--sp-5);
+}
+.card-logo-text {
+  font-size: 30px;
+  font-weight: 900;
+  letter-spacing: -1px;
+  color: var(--pink);
+  font-style: italic;
+}
+.card-logo-text .dot { color: var(--text-primary); }
+.card-logo-sub {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* Fields */
+.login-card .field-group {
+  margin-bottom: var(--sp-4);
+}
+
+/* Big pink sign-in button */
+.btn-signin {
+  background: var(--pink);
+  color: var(--text-white);
+  border: none;
+  border-radius: var(--r-md);
+  width: 100%;
+  padding: var(--sp-4);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--t-fast);
+  margin-top: var(--sp-2);
+  margin-bottom: var(--sp-5);
+}
+.btn-signin:hover { background: var(--pink-hover); }
+
+/* Role selection chips below button */
+.role-select-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: var(--sp-3);
+}
+
+.role-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+
+.role-chip {
+  background: var(--card-bg);
+  border: 1.5px solid var(--card-border);
+  border-radius: var(--r-full);
+  padding: var(--sp-2) var(--sp-4);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+.role-chip:hover {
+  border-color: var(--pink-light);
+  color: var(--pink);
+}
+.role-chip.selected {
+  background: var(--pink);
+  border-color: var(--pink);
+  color: var(--text-white);
+}
+
+/* ---- Roles table ---- */
+.roles-info {
+  grid-area: table;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-5);
+  box-shadow: var(--shadow-sm);
+}
+
+.roles-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: var(--sp-4);
+}
+
+.roles-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.roles-table th {
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--divider);
+}
+.roles-table th:first-child { text-align: left; }
+.roles-table td {
+  text-align: center;
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid #f5edd5;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+.roles-table td:first-child { text-align: left; }
+.roles-table tr:last-child td { border-bottom: none; }
+
+.dot-active { color: var(--text-primary); font-size: 9px; }
+.dot-beta   { color: var(--pink); font-weight: 700; font-size: 13px; }
+.dot-none   { color: #ccc; }
+
+.legend {
+  margin-top: var(--sp-4);
+  display: flex;
+  gap: var(--sp-5);
+  font-size: 11px;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+
+/* ---- Flow banner ---- */
+.flow-banner {
+  grid-column: 1 / -1;
+  background: var(--pink);
+  border-radius: var(--r-md);
+  padding: var(--sp-4) var(--sp-5);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-white);
+  line-height: 1.6;
+}
+
+@media (max-width: 700px) {
+  .login-wrapper {
+    grid-template-columns: 1fr;
+    grid-template-areas: "brand" "card" "table";
+    max-width: 440px;
+  }
+  /* Antes esto ponia align-items:flex-start otra vez, desalineando el
+     card a la izquierda en pantallas angostas. Mantenemos "stretch"
+     (heredado de .login-body) para que siga centrado. */
+  .login-body { padding-top: var(--sp-6); }
+}
