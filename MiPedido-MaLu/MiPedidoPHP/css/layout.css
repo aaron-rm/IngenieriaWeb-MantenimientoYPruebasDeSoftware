@@ -1,0 +1,143 @@
+/* ============================================================
+   LAYOUT.CSS — Banner superior, menu de navegacion y footer
+   comunes a TODAS las paginas del sitio (requisito del profesor)
+   ============================================================ */
+
+/* Requisito: los titulos usan una tipografia diferente al cuerpo */
+/* Requisito: los formularios usan una tipografia y color diferentes al body */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800;900&family=Roboto+Mono:wght@400;500;700&display=swap');
+
+:root {
+  --font-titulos: 'Poppins', 'Segoe UI', sans-serif;
+}
+
+h1, h2, h3, .brand-logo-text, .page-title, .site-footer .footer-copy {
+  font-family: var(--font-titulos);
+}
+
+/* ---- BANNER SUPERIOR (logo + busqueda + redes) ---- */
+.site-banner {
+  text-decoration: none;
+  background: var(--sidebar-bg, #383838);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 24px;
+  gap: 16px;
+}
+
+.brand-logo-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+.brand-logo-img { height: 40px; width: 40px; border-radius: 50%; object-fit: cover; }
+.brand-logo-text {
+
+  font-size: 22px;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+}
+.brand-logo-text .dot-pink { color: var(--pink, #e70c88); }
+
+.banner-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.banner-icon {
+  color: inherit;
+  text-decoration: none;
+  font-size: 18px;
+  filter: grayscale(0.2);
+  transition: transform 0.15s ease;
+}
+.banner-icon a:hover { transform: scale(1.15); }
+
+
+.banner-user {
+  color: #ddd;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.banner-user strong { color: #fff; }
+
+.btn-logout-top {
+  background: var(--pink, #e70c88);
+  color: #fff;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 20px;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+}
+.btn-logout-top:hover { background: var(--pink-hover, #c50073); }
+
+/* ---- MENU DE NAVEGACION PRINCIPAL ---- */
+.main-nav {
+  background: #2c2c2c;
+  display: flex;
+  gap: 4px;
+  padding: 0 20px;
+  overflow-x: auto;
+}
+
+.main-nav-item {
+  color: #ccc;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 12px 16px;
+  border-bottom: 3px solid transparent;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+.main-nav-item:hover { color: #fff; background: rgba(255,255,255,0.05); }
+.main-nav-item.beta { opacity: 0.45; cursor: not-allowed; }
+
+/* ---- FOOTER ---- */
+.site-footer {
+  background: var(--sidebar-bg, #383838);
+  color: #ccc;
+  text-align: center;
+  padding: 18px 20px;
+  margin-top: 40px;
+}
+.footer-nav {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+.footer-nav a { color: #ccc; text-decoration: none; }
+.footer-nav a:hover { color: #fff; text-decoration: underline; }
+.footer-sep { color: #666; }
+.footer-logout { color: var(--pink-light, #ed9fbd) !important; font-weight: 700; }
+.footer-copy { font-size: 11px; color: #999; }
+
+/* ---- PAGINA PUBLICA: contenedor generico ---- */
+.public-page-body { background: var(--content-bg, #fff8d9); min-height: 100vh; display: flex; flex-direction: column; }
+.public-main { flex: 1; padding: 32px 24px; max-width: 1100px; margin: 0 auto; width: 100%; }
+
+/* Alertas de error / exito reutilizables */
+.alert-box {
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+.alert-error   { background: #fdecea; color: #b3261e; border: 1px solid #f6c6c2; }
+.alert-success { background: #eaf7ec; color: #146c2e; border: 1px solid #bfe6c7; }
+
+@media (max-width: 700px) {
+  .site-banner { flex-wrap: wrap; }
+  .banner-user { display: none; }
+}
