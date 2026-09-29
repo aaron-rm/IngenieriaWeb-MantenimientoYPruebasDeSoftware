@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Actividad 1</title>
+</head>
+<body>
+    <section>
+        <h1>Actividad 1</h1>
+        <h2>Registro de Calificaciones</h2>
+        <form action="Act1.php" method="POST">
+            <label for="nombre">Nombre del estudiante:</label><br>
+            <input type="text" id="nombre" name="nombre" required><br><br>
+
+            <label for="nota1">Calificación 1:</label><br>
+            <input type="number" id="nota1" name="nota1" step="0.01" min="0" max="100" required><br><br>
+
+            <label for="nota2">Calificación 2:</label><br>
+            <input type="number" id="nota2" name="nota2" step="0.01" min="0" max="100" required><br><br>
+
+            <label for="nota3">Calificación 3:</label><br>
+            <input type="number" id="nota3" name="nota3" step="0.01" min="0" max="100" required><br><br>
+
+            <label for="nota4">Calificación 4:</label><br>
+            <input type="number" id="nota4" name="nota4" step="0.01" min="0" max="100" required><br><br>
+
+            <label for="nota5">Calificación 5:</label><br>
+            <input type="number" id="nota5" name="nota5" step="0.01" min="0" max="100" required><br><br>
+
+            <button type="submit">Calcular Promedio</button>
+        </form>
+    </section>
+</body>
+</html>
