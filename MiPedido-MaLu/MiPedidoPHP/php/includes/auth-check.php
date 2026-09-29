@@ -1,10 +1,8 @@
 <?php
-/**
- * ============================================================
- * auth-check.php — Control de acceso por sesion y por rol
- * ------------------------------------------------------------
- * Como usarlo: ANTES de incluir este archivo, declarar (opcional)
- * un arreglo con los roles permitidos para la pagina actual:
+/*
+ * Control de acceso por sesion y por rol
+ *
+ * Declarar un arreglo con los roles permitidos para la pagina actual:
  *
  *      $rolesPermitidos = ['cashier', 'supervisor', 'gerente'];
  *      require_once __DIR__ . '/../includes/auth-check.php';
@@ -14,7 +12,6 @@
  *
  * Si no hay sesion -> redirige a login.php
  * Si el rol no esta permitido -> redirige a orders.php con mensaje
- * ============================================================
  */
 
 require_once __DIR__ . '/config.php';

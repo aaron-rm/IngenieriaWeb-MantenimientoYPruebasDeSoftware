@@ -1,15 +1,9 @@
 <?php
-/**
- * ============================================================
- * header.php — Banner + menu de navegacion superior
- * ------------------------------------------------------------
- * Incluye: logo de la organizacion, icono de busqueda (enlaza a
- * Google.com), iconos de redes sociales, y el menu de navegacion
- * que cambia segun el ROL guardado en la sesion.
+/*
+ * Banner + menu de navegacion superior
  *
  * Se debe incluir justo despues de abrir <body>:
  *      require __DIR__ . '/includes/header.php';
- * ============================================================
  */
 require_once __DIR__ . '/config.php';
 

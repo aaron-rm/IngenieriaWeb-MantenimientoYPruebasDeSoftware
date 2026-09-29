@@ -1,6 +1,5 @@
 <?php
 /**
- * ============================================================
  * login.php — Formulario de inicio de sesion
  * Valida usuario y contrasena contra los usuarios de ejemplo
  * definidos en includes/datos.php (ya no se usa base de datos).
@@ -8,7 +7,6 @@
  * segun el rol:
  *    gerente / supervisor / cashier -> pages/orders.php
  *    comandas                       -> pages/comandas.php
- * ============================================================
  */
 require_once __DIR__ . '/includes/config.php';
 require_once __DIR__ . '/includes/datos.php';

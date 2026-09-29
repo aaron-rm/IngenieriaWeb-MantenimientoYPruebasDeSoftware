@@ -1,34 +1,13 @@
 <?php
 /**
- * ============================================================
- * datos.php — Datos de ejemplo (reemplaza a la base de datos)
- * ------------------------------------------------------------
- * Ya no hay MySQL, PDO ni scripts SQL. Todo lo que antes vivia
- * en tablas (secciones, usuarios, categorias, productos, mesas,
- * pedidos, facturas) ahora es un arreglo PHP que se crea con
- * datos de ejemplo la primera vez que se necesita y se guarda
- * en $_SESSION['datos'].
- *
- * Por eso la aplicacion sigue siendo "funcional": se pueden
- * enviar comandas, tachar platos en cocina, cobrar, ver el
- * diario de ventas y administrar secciones, y los cambios
- * duran mientras dure la sesion del navegador.
+ * datos.php — Datos de ejemplo 
  *
  * Se incluye con require_once __DIR__ . '/includes/datos.php'
  * (o '../includes/datos.php' dentro de php/pages/).
- * ============================================================
  */
 
 require_once __DIR__ . '/config.php';
 
-/* ============================================================
- * DATOS INICIALES DE EJEMPLO
- * ============================================================ */
-
-/**
- * Construye el conjunto completo de datos de ejemplo.
- * Las tablas se indexan por su id para poder buscar rapido.
- */
 function datosIniciales(): array
 {
     // ---- Secciones ----
@@ -37,7 +16,6 @@ function datosIniciales(): array
         2 => ['id_seccion' => 2, 'nombre' => 'Bar',         'estado' => 'activa'],
     ];
 
-    // ---- Usuarios (password en texto plano solo con fines academicos) ----
     // [id, nombre, email, password, rol, id_seccion]
     $usuarios = [];
     foreach ([
@@ -233,8 +211,7 @@ function datosIniciales(): array
 
 /**
  * Equipo de desarrollo que se muestra en "Sobre Nosotros".
- * Las fotos son las de la carpeta img/. Reemplaza nombre, cedula,
- * carrera y resumen por los datos REALES del equipo.
+ * Las fotos son las de la carpeta img/. 
  */
 function listarEquipo(): array
 {
@@ -257,9 +234,6 @@ function listarEquipo(): array
     ];
 }
 
-/* ============================================================
- * ACCESO A LOS DATOS (guardados en la sesion)
- * ============================================================ */
 
 /**
  * Devuelve una REFERENCIA al arreglo de datos guardado en sesion.
@@ -290,9 +264,9 @@ function validarMetodoPago($metodo): void
     }
 }
 
-/* ------------------------------------------------------------
+/* 
  * Usuarios / login
- * ------------------------------------------------------------ */
+*/
 
 /** Devuelve el usuario si email/password coinciden (y esta activo), o null. */
 function autenticarUsuario(string $email, string $password): ?array
@@ -309,9 +283,9 @@ function autenticarUsuario(string $email, string $password): ?array
     return null;
 }
 
-/* ------------------------------------------------------------
+/* 
  * Secciones, categorias y asignacion de usuarios
- * ------------------------------------------------------------ */
+*/
 
 function listarSecciones(): array
 {
@@ -407,9 +381,9 @@ function asignarSeccion(int $idUsuario, ?int $idSeccion): void
     }
 }
 
-/* ------------------------------------------------------------
+/*
  * Productos
- * ------------------------------------------------------------ */
+*/
 
 function productoPorId(int $idProducto): ?array
 {
@@ -461,9 +435,9 @@ function calcularTotal(array $carrito): float
     return round($total, 2);
 }
 
-/* ------------------------------------------------------------
- * Mesas
- * ------------------------------------------------------------ */
+/* 
+ * Mesas 
+*/
 
 function listarMesas(): array
 {
@@ -481,9 +455,9 @@ function cambiarEstadoMesa(int $idMesa, string $estado): void
     }
 }
 
-/* ------------------------------------------------------------
+/* 
  * Pedidos (comandas), detalle y facturas
- * ------------------------------------------------------------ */
+*/
 
 /**
  * Crea un pedido con sus platos. $c: origen, id_mesa, comensal, id_usuario,

@@ -1,11 +1,9 @@
 <?php
 /**
- * ============================================================
  * sobre-nosotros.php — Pagina publica "Sobre Nosotros"
  * Muestra la foto, nombre, cedula, carrera y resumen de
  * experiencia de cada integrante, leyendo estos datos de
  * ejemplo de listarEquipo() en includes/datos.php.
- * ============================================================
  */
 require_once __DIR__ . '/includes/config.php';
 require_once __DIR__ . '/includes/datos.php';
