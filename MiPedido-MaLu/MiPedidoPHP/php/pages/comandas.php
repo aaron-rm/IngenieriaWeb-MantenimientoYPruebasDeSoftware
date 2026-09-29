@@ -7,30 +7,25 @@
  */
 $rolesPermitidos = ['comandas', 'cashier', 'supervisor', 'gerente'];
 require_once __DIR__ . '/../includes/auth-check.php';
-require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . '/../includes/datos.php';
 
 // ---------------------------------------------------------
 // Procesar acciones: tachar plato / cambiar estado de comanda
 // ---------------------------------------------------------
 $accion = $_POST['accion'] ?? null;
 if ($accion !== null && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $pdo = getConnection();
     try {
         if ($accion === 'togglePreparado') {
-            $idDetalle = (int) $_POST['idDetalle'];
-            $pdo->prepare('UPDATE pedido_detalle SET preparado = NOT preparado WHERE id_detalle = ?')
-                ->execute([$idDetalle]);
+            alternarPreparado((int) $_POST['idDetalle']);
 
         } elseif ($accion === 'setEstado') {
             $idPedido    = (int) $_POST['idPedido'];
             $nuevoEstado = $_POST['estado'];
-            $pdo->prepare('UPDATE pedidos SET estado = ? WHERE id_pedido = ?')
-                ->execute([$nuevoEstado, $idPedido]);
+            actualizarPedido($idPedido, ['estado' => $nuevoEstado]);
 
             // Si se marca "listo", tachamos automaticamente todos los platos de esa comanda
             if ($nuevoEstado === 'listo') {
-                $pdo->prepare('UPDATE pedido_detalle SET preparado = 1 WHERE id_pedido = ?')
-                    ->execute([$idPedido]);
+                marcarTodoPreparado($idPedido);
             }
         }
     } catch (Exception $ex) {
@@ -82,12 +77,8 @@ unset($_SESSION['toastComandas']);
     </div>
 
     <?php
-        $pdo = getConnection();
-        $psPed = $pdo->query(
-            "SELECT p.id_pedido, p.numero_pedido, p.origen, p.id_mesa, p.comensal, p.estado, p.nota, p.fecha_hora
-             FROM pedidos p WHERE p.estado IN ('pendiente','en_preparacion') ORDER BY p.fecha_hora ASC"
-        );
-        $pedidos = $psPed->fetchAll();
+        // Comandas activas (pendientes o en preparacion), de la mas antigua a la mas nueva
+        $pedidos = pedidosPorEstado(['pendiente', 'en_preparacion']);
     ?>
     <div class="comanda-grid">
     <?php
@@ -100,13 +91,7 @@ unset($_SESSION['toastComandas']);
                 : 'Rapido';
             $estadoPedido = $rped['estado'];
 
-            $psDet = $pdo->prepare(
-                "SELECT d.id_detalle, d.cantidad, d.preparado, pr.nombre
-                 FROM pedido_detalle d JOIN productos pr ON d.id_producto = pr.id_producto
-                 WHERE d.id_pedido = ?"
-            );
-            $psDet->execute([$idPedido]);
-            $detalles = $psDet->fetchAll();
+            $detalles = detallesDePedido($idPedido);
 
             $todoListo = true;
             $itemsHtml = '';

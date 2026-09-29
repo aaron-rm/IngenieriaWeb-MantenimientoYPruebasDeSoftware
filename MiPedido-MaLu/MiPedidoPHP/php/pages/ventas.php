@@ -2,12 +2,12 @@
 /**
  * ============================================================
  * ventas.php — Diario de ventas (CASHIER / SUPERVISOR / GERENTE)
- * Lee las facturas reales generadas en orders.php
+ * Lee las facturas de ejemplo y las generadas en orders.php
  * ============================================================
  */
 $rolesPermitidos = ['cashier', 'supervisor', 'gerente'];
 require_once __DIR__ . '/../includes/auth-check.php';
-require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . '/../includes/datos.php';
 
 $filtroMetodo  = $_GET['metodo'] ?? null;
 $filtroOrigen  = $_GET['origen'] ?? null;
@@ -16,19 +16,7 @@ $verFacturaId  = $_GET['verFactura'] ?? null;
 // ---------------------------------------------------------
 // Consulta principal de facturas del dia (con filtros opcionales)
 // ---------------------------------------------------------
-$sql = "SELECT f.id_factura, f.total, f.metodo_pago, f.fecha_hora,
-               p.origen, p.id_mesa, p.comensal
-        FROM facturas f JOIN pedidos p ON f.id_pedido = p.id_pedido
-        WHERE f.anulada = 0 AND DATE(f.fecha_hora) = CURDATE() ";
-$params = [];
-if ($filtroMetodo !== null && $filtroMetodo !== '') { $sql .= 'AND f.metodo_pago = ? '; $params[] = $filtroMetodo; }
-if ($filtroOrigen !== null && $filtroOrigen !== '') { $sql .= 'AND p.origen = ? '; $params[] = $filtroOrigen; }
-$sql .= 'ORDER BY f.fecha_hora DESC';
-
-$pdo = getConnection();
-$ps = $pdo->prepare($sql);
-$ps->execute($params);
-$rows = $ps->fetchAll();
+$rows = facturasDeHoy($filtroMetodo, $filtroOrigen);
 
 $cantFacturas = 0;
 $totalDia = 0; $totalEfectivo = 0; $totalYappy = 0; $totalTarjeta = 0;
@@ -133,12 +121,7 @@ foreach ($rows as $r) {
 
     <?php /* ================= DETALLE DE FACTURA ================= */ ?>
     <?php if ($verFacturaId !== null):
-        $ps2 = $pdo->prepare(
-            "SELECT f.id_factura, f.total, f.metodo_pago, f.fecha_hora, p.id_pedido, p.origen, p.id_mesa, p.comensal
-             FROM facturas f JOIN pedidos p ON f.id_pedido = p.id_pedido WHERE f.id_factura = ?"
-        );
-        $ps2->execute([(int) $verFacturaId]);
-        $rf = $ps2->fetch();
+        $rf = facturaPorId((int) $verFacturaId);
         if ($rf):
             $idPedidoF = (int) $rf['id_pedido'];
     ?>
@@ -156,12 +139,7 @@ foreach ($rows as $r) {
                 </div>
                 <div class="factura-items">
                 <?php
-                    $ps3 = $pdo->prepare(
-                        "SELECT pr.nombre, d.cantidad, pr.precio FROM pedido_detalle d
-                         JOIN productos pr ON d.id_producto = pr.id_producto WHERE d.id_pedido = ?"
-                    );
-                    $ps3->execute([$idPedidoF]);
-                    foreach ($ps3->fetchAll() as $ri):
+                    foreach (detallesDePedido($idPedidoF) as $ri):
                 ?>
                     <div class="factura-item-row">
                         <span><?= (int) $ri['cantidad'] ?>× <?= htmlspecialchars($ri['nombre']) ?></span>

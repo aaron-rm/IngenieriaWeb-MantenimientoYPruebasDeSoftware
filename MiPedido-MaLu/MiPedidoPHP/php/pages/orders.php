@@ -8,7 +8,7 @@
  */
 $rolesPermitidos = ['cashier', 'supervisor', 'gerente'];
 require_once __DIR__ . '/../includes/auth-check.php';
-require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . '/../includes/datos.php';
 
 // ---------------------------------------------------------
 // Datos de la sesion
@@ -41,7 +41,6 @@ $accion = $_POST['accion'] ?? ($_GET['accion'] ?? null);
 
 if ($accion !== null && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $pdo = null;
     // Contexto (mesa/comensal) para reconstruir la redireccion sin perder
     // la pantalla en la que estaba el usuario (patron Post/Redirect/Get)
     $mesaIdCtx   = $_POST['idMesa'] ?? null;
@@ -66,59 +65,35 @@ if ($accion !== null && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
         } elseif ($accion === 'enviarRapido' || $accion === 'cobrarRapido') {
             if (!empty($carritoRapido)) {
-                $pdo = getConnection();
-                $pdo->beginTransaction();
-
-                $nota         = $_POST['nota'] ?? null;
-                $esCobro      = ($accion === 'cobrarRapido');
-                $metodoPago   = $_POST['metodoPago'] ?? null;
+                $nota          = $_POST['nota'] ?? null;
+                $esCobro       = ($accion === 'cobrarRapido');
+                $metodoPago    = $_POST['metodoPago'] ?? null;
                 $estadoInicial = $esCobro ? 'entregado' : 'pendiente';
 
-                // Calculamos el total con precios reales de la BD (nunca confiar en el cliente)
-                $total = 0;
-                $psPrecio = $pdo->prepare('SELECT precio FROM productos WHERE id_producto = ?');
-                foreach ($carritoRapido as $idProd => $cant) {
-                    $psPrecio->execute([$idProd]);
-                    $rowP = $psPrecio->fetch();
-                    if ($rowP) $total += $rowP['precio'] * $cant;
-                }
+                // Validamos el metodo de pago ANTES de crear nada (si falla, no queda un pedido a medias)
+                if ($esCobro) validarMetodoPago($metodoPago);
 
-                $psPedido = $pdo->prepare(
-                    "INSERT INTO pedidos (numero_pedido, origen, id_usuario, id_seccion, estado, nota, metodo_pago, total, cobrado)
-                     VALUES (0, 'rapido', ?, ?, ?, ?, ?, ?, ?)"
-                );
-                $psPedido->execute([
-                    $idUsuario,
-                    $idSeccion,
-                    $estadoInicial,
-                    ($nota !== null && trim($nota) !== '') ? trim($nota) : null,
-                    $esCobro ? $metodoPago : null,
-                    $total,
-                    $esCobro ? 1 : 0,
-                ]);
-                $idPedidoNuevo = (int) $pdo->lastInsertId();
+                // Calculamos el total con los precios del catalogo (nunca confiar en el cliente)
+                $total = calcularTotal($carritoRapido);
 
-                // El numero de pedido visible = mismo id (orden de entrada)
-                $pdo->prepare('UPDATE pedidos SET numero_pedido = ? WHERE id_pedido = ?')
-                    ->execute([$idPedidoNuevo, $idPedidoNuevo]);
-
-                $psDetalle = $pdo->prepare(
-                    'INSERT INTO pedido_detalle (id_pedido, id_producto, cantidad, preparado) VALUES (?, ?, ?, 0)'
-                );
-                foreach ($carritoRapido as $idProd => $cant) {
-                    $psDetalle->execute([$idPedidoNuevo, $idProd, $cant]);
-                }
+                $idPedidoNuevo = crearPedido([
+                    'origen'      => 'rapido',
+                    'id_usuario'  => $idUsuario,
+                    'id_seccion'  => $idSeccion,
+                    'estado'      => $estadoInicial,
+                    'nota'        => ($nota !== null && trim($nota) !== '') ? trim($nota) : null,
+                    'metodo_pago' => $esCobro ? $metodoPago : null,
+                    'total'       => $total,
+                    'cobrado'     => $esCobro ? 1 : 0,
+                ], $carritoRapido);
 
                 if ($esCobro) {
-                    $pdo->prepare(
-                        'INSERT INTO facturas (id_pedido, total, metodo_pago, id_seccion) VALUES (?, ?, ?, ?)'
-                    )->execute([$idPedidoNuevo, $total, $metodoPago, $idSeccion]);
+                    $idFactura = crearFactura($idPedidoNuevo, $total, $metodoPago, $idSeccion);
                 }
 
-                $pdo->commit();
                 $carritoRapido = [];
                 $toast = $esCobro
-                    ? "Cobrado correctamente. Factura #$idPedidoNuevo"
+                    ? "Cobrado correctamente. Factura #$idFactura"
                     : "Comanda #$idPedidoNuevo enviada a cocina";
             }
 
@@ -126,31 +101,19 @@ if ($accion !== null && $_SERVER['REQUEST_METHOD'] === 'POST') {
             // Cobra un pedido que la cocina ya marco como "listo" (cierra el ciclo cocina -> caja)
             $idPedidoListo   = (int) $_POST['idPedido'];
             $metodoPagoListo = $_POST['metodoPago'] ?? null;
-            $pdo = getConnection();
-            $pdo->beginTransaction();
+            validarMetodoPago($metodoPagoListo);
 
-            $psTotal = $pdo->prepare(
-                "SELECT total, id_seccion FROM pedidos WHERE id_pedido = ? AND estado='listo' AND cobrado = 0"
-            );
-            $psTotal->execute([$idPedidoListo]);
-            $rowTotal = $psTotal->fetch();
+            $pedidoListo = pedidoPorId($idPedidoListo);
 
-            if ($rowTotal) {
-                $totalListo   = $rowTotal['total'];
-                $seccionListo = $rowTotal['id_seccion'];
+            if ($pedidoListo && $pedidoListo['estado'] === 'listo' && !$pedidoListo['cobrado']) {
+                actualizarPedido($idPedidoListo, [
+                    'estado'      => 'entregado',
+                    'cobrado'     => 1,
+                    'metodo_pago' => $metodoPagoListo,
+                ]);
+                crearFactura($idPedidoListo, (float) $pedidoListo['total'], $metodoPagoListo, (int) $pedidoListo['id_seccion']);
 
-                $pdo->prepare(
-                    "UPDATE pedidos SET estado='entregado', cobrado=1, metodo_pago=? WHERE id_pedido=?"
-                )->execute([$metodoPagoListo, $idPedidoListo]);
-
-                $pdo->prepare(
-                    'INSERT INTO facturas (id_pedido, total, metodo_pago, id_seccion) VALUES (?,?,?,?)'
-                )->execute([$idPedidoListo, $totalListo, $metodoPagoListo, $seccionListo]);
-
-                $pdo->commit();
                 $toast = "Pedido #$idPedidoListo cobrado. Factura generada.";
-            } else {
-                $pdo->rollBack();
             }
 
         } elseif ($accion === 'addComensal') {
@@ -171,8 +134,7 @@ if ($accion !== null && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $carritoC[$idProd] = ($carritoC[$idProd] ?? 0) + 1;
             $carritosMesa[$clave] = $carritoC;
             // marcar mesa como ocupada
-            $pdo = getConnection();
-            $pdo->prepare("UPDATE mesas SET estado='ocupada' WHERE id_mesa=?")->execute([$idMesa]);
+            cambiarEstadoMesa($idMesa, 'ocupada');
 
         } elseif ($accion === 'qtyMesa') {
             $idMesa   = (int) $_POST['idMesa'];
@@ -193,45 +155,29 @@ if ($accion !== null && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $carritoC = $carritosMesa[$clave] ?? [];
 
             if (!empty($carritoC)) {
-                $pdo = getConnection();
-                $pdo->beginTransaction();
-
                 $esCobro       = ($accion === 'cobrarMesa');
                 $metodoPago    = $_POST['metodoPago'] ?? null;
                 $estadoInicial = $esCobro ? 'entregado' : 'pendiente';
 
-                $total = 0;
-                $psPrecio = $pdo->prepare('SELECT precio FROM productos WHERE id_producto = ?');
-                foreach ($carritoC as $idProd => $cant) {
-                    $psPrecio->execute([$idProd]);
-                    $rowP = $psPrecio->fetch();
-                    if ($rowP) $total += $rowP['precio'] * $cant;
-                }
+                // Validamos el metodo de pago ANTES de crear nada
+                if ($esCobro) validarMetodoPago($metodoPago);
 
-                $psPedido = $pdo->prepare(
-                    "INSERT INTO pedidos (numero_pedido, origen, id_mesa, comensal, id_usuario, id_seccion, estado, metodo_pago, total, cobrado)
-                     VALUES (0, 'mesa', ?, ?, ?, ?, ?, ?, ?, ?)"
-                );
-                $psPedido->execute([
-                    $idMesa, $comensal, $idUsuario, $idSeccion, $estadoInicial,
-                    $esCobro ? $metodoPago : null, $total, $esCobro ? 1 : 0,
-                ]);
-                $idPedidoNuevo = (int) $pdo->lastInsertId();
+                $total = calcularTotal($carritoC);
 
-                $pdo->prepare('UPDATE pedidos SET numero_pedido = ? WHERE id_pedido = ?')
-                    ->execute([$idPedidoNuevo, $idPedidoNuevo]);
-
-                $psDetalle = $pdo->prepare(
-                    'INSERT INTO pedido_detalle (id_pedido, id_producto, cantidad, preparado) VALUES (?, ?, ?, 0)'
-                );
-                foreach ($carritoC as $idProd => $cant) {
-                    $psDetalle->execute([$idPedidoNuevo, $idProd, $cant]);
-                }
+                $idPedidoNuevo = crearPedido([
+                    'origen'      => 'mesa',
+                    'id_mesa'     => $idMesa,
+                    'comensal'    => $comensal,
+                    'id_usuario'  => $idUsuario,
+                    'id_seccion'  => $idSeccion,
+                    'estado'      => $estadoInicial,
+                    'metodo_pago' => $esCobro ? $metodoPago : null,
+                    'total'       => $total,
+                    'cobrado'     => $esCobro ? 1 : 0,
+                ], $carritoC);
 
                 if ($esCobro) {
-                    $pdo->prepare(
-                        'INSERT INTO facturas (id_pedido, total, metodo_pago, id_seccion) VALUES (?, ?, ?, ?)'
-                    )->execute([$idPedidoNuevo, $total, $metodoPago, $idSeccion]);
+                    $idFactura = crearFactura($idPedidoNuevo, $total, $metodoPago, $idSeccion);
 
                     // liberamos al comensal de la sesion
                     unset($carritosMesa[$clave]);
@@ -244,7 +190,7 @@ if ($accion !== null && $_SERVER['REQUEST_METHOD'] === 'POST') {
                     // si ya no quedan comensales activos para esa mesa, la liberamos
                     $mesaVacia = ($lista === null || empty($lista));
                     if ($mesaVacia) {
-                        $pdo->prepare("UPDATE mesas SET estado='libre' WHERE id_mesa=?")->execute([$idMesa]);
+                        cambiarEstadoMesa($idMesa, 'libre');
                         // Mesa liberada (vuelve a su color original) -> al redirigir
                         // regresamos al salon de mesas en vez de quedarnos en esta mesa
                         $mesaIdCtx = null;
@@ -257,17 +203,13 @@ if ($accion !== null && $_SERVER['REQUEST_METHOD'] === 'POST') {
                     $carritosMesa[$clave] = [];
                 }
 
-                $pdo->commit();
                 $toast = $esCobro
-                    ? "Comensal $comensal cobrado. Factura #$idPedidoNuevo"
+                    ? "Comensal $comensal cobrado. Factura #$idFactura"
                     : "Comanda #$idPedidoNuevo (Mesa $idMesa · $comensal) enviada a cocina";
             }
         }
 
     } catch (Exception $ex) {
-        if ($pdo !== null && $pdo->inTransaction()) {
-            try { $pdo->rollBack(); } catch (Exception $ignore) {}
-        }
         $toast = 'Error al procesar la accion: ' . $ex->getMessage();
     }
 
@@ -333,13 +275,7 @@ $q         = $_GET['q'] ?? null;
              ============================================================ */ ?>
 
     <?php /* Pedidos que la cocina ya marco "Listo" y esperan cobro (cierra el ciclo cocina -> caja) */
-        $pdoL = getConnection();
-        $psL = $pdoL->prepare(
-            "SELECT id_pedido, origen, id_mesa, comensal, total, fecha_hora FROM pedidos
-             WHERE estado='listo' AND cobrado=0 AND id_seccion=? ORDER BY fecha_hora"
-        );
-        $psL->execute([$idSeccion]);
-        $listos = $psL->fetchAll();
+        $listos = pedidosListosSinCobrar((int) $idSeccion);
     ?>
     <div class="card" style="margin-bottom:16px">
         <div class="page-subtitle" style="margin-bottom:8px;font-weight:700">🔔 Listos en cocina · esperando cobro</div>
@@ -382,8 +318,7 @@ $q         = $_GET['q'] ?? null;
                 <div class="row-label">Mas vendidos · <span style="font-weight:400;text-transform:none">tap para agregar</span></div>
                 <div class="bestsellers-chips">
                 <?php
-                    $rsB = $pdoL->query("SELECT id_producto, nombre, precio FROM productos WHERE mas_vendido=1 AND activo=1");
-                    foreach ($rsB->fetchAll() as $rb):
+                    foreach (productosMasVendidos() as $rb):
                 ?>
                     <form method="post" action="orders.php" style="display:inline">
                         <input type="hidden" name="accion" value="addRapido">
@@ -402,9 +337,7 @@ $q         = $_GET['q'] ?? null;
             <div class="cat-tabs">
                 <a class="cat-tab <?= ($catFiltro === null) ? 'active' : '' ?>" href="orders.php?vista=rapido">Todas</a>
                 <?php
-                    $psC = $pdoL->prepare("SELECT id_categoria, nombre FROM categorias ORDER BY (id_seccion = ?) DESC, id_categoria");
-                    $psC->execute([$idSeccion]);
-                    foreach ($psC->fetchAll() as $rc):
+                    foreach (categoriasOrdenadas((int) $idSeccion) as $rc):
                         $activeCls = ((string) $rc['id_categoria'] === (string) $catFiltro) ? 'active' : '';
                 ?>
                     <a class="cat-tab <?= $activeCls ?>" href="orders.php?vista=rapido&cat=<?= (int) $rc['id_categoria'] ?>"><?= htmlspecialchars($rc['nombre']) ?></a>
@@ -414,19 +347,10 @@ $q         = $_GET['q'] ?? null;
             <?php /* ---- Grid de productos segun filtro/busqueda ---- */ ?>
             <div class="product-grid">
                 <?php
-                    $sql = "SELECT p.id_producto, p.nombre, p.precio, p.emoji, sc.nombre AS subcat
-                            FROM productos p
-                            JOIN subcategorias sc ON p.id_subcategoria = sc.id_subcategoria
-                            JOIN categorias c ON sc.id_categoria = c.id_categoria
-                            WHERE p.activo = 1 ";
-                    $params = [];
-                    if ($catFiltro !== null && $catFiltro !== '') { $sql .= 'AND c.id_categoria = ? '; $params[] = (int) $catFiltro; }
-                    if ($q !== null && trim($q) !== '')          { $sql .= 'AND p.nombre LIKE ? '; $params[] = '%' . trim($q) . '%'; }
-                    $sql .= 'ORDER BY p.nombre';
-
-                    $psP = $pdoL->prepare($sql);
-                    $psP->execute($params);
-                    $productos = $psP->fetchAll();
+                    $productos = buscarProductos(
+                        ($catFiltro !== null && $catFiltro !== '') ? (int) $catFiltro : null,
+                        $q
+                    );
 
                     if (empty($productos)):
                 ?>
@@ -471,10 +395,8 @@ $q         = $_GET['q'] ?? null;
                 <div class="ticket-empty"><span>Sin productos</span><span class="text-muted text-xs">Toca un producto para agregar</span></div>
             <?php
                 else:
-                    $psT = $pdoL->prepare('SELECT nombre, precio FROM productos WHERE id_producto = ?');
                     foreach ($carritoRapido as $idProd => $cant):
-                        $psT->execute([$idProd]);
-                        $rt = $psT->fetch();
+                        $rt = productoPorId((int) $idProd);
                         if ($rt):
                             $subtotal = $rt['precio'] * $cant;
                             $totalRapido += $subtotal;
@@ -545,7 +467,6 @@ $q         = $_GET['q'] ?? null;
         $comensalSel = $_GET['comensal'] ?? 'C1';
         $catMesa     = $_GET['catMesa'] ?? null;
         $qMesa       = $_GET['qMesa'] ?? null;
-        $pdoM = getConnection();
     ?>
 
     <?php if ($mesaSel === -1): ?>
@@ -562,8 +483,7 @@ $q         = $_GET['q'] ?? null;
                 </div>
                 <div class="tables-grid">
                 <?php
-                    $rsM = $pdoM->query('SELECT * FROM mesas ORDER BY numero');
-                    foreach ($rsM->fetchAll() as $rm):
+                    foreach (listarMesas() as $rm):
                         $ocupada = ($rm['estado'] === 'ocupada');
                 ?>
                     <a href="orders.php?vista=mesas&mesaId=<?= (int) $rm['id_mesa'] ?>&comensal=C1" class="table-card <?= $ocupada ? 'busy' : '' ?>" style="text-decoration:none">
@@ -607,8 +527,7 @@ $q         = $_GET['q'] ?? null;
                 <div class="row-label">Mas vendidos · <span style="font-weight:400;text-transform:none">tap para agregar</span></div>
                 <div class="bestsellers-chips">
                 <?php
-                    $rsBM = $pdoM->query("SELECT id_producto, nombre, precio FROM productos WHERE mas_vendido=1 AND activo=1");
-                    foreach ($rsBM->fetchAll() as $rbm):
+                    foreach (productosMasVendidos() as $rbm):
                 ?>
                     <form method="post" action="orders.php" style="display:inline">
                         <input type="hidden" name="accion" value="addMesaProducto">
@@ -629,9 +548,7 @@ $q         = $_GET['q'] ?? null;
             <div class="cat-tabs">
                 <a class="cat-tab <?= ($catMesa === null) ? 'active' : '' ?>" href="orders.php?vista=mesas&mesaId=<?= $mesaSel ?>&comensal=<?= htmlspecialchars($comensalSel) ?>">Todas</a>
                 <?php
-                    $psCM = $pdoM->prepare("SELECT id_categoria, nombre FROM categorias ORDER BY (id_seccion = ?) DESC, id_categoria");
-                    $psCM->execute([$idSeccion]);
-                    foreach ($psCM->fetchAll() as $rcm):
+                    foreach (categoriasOrdenadas((int) $idSeccion) as $rcm):
                         $activeClsM = ((string) $rcm['id_categoria'] === (string) $catMesa) ? 'active' : '';
                 ?>
                     <a class="cat-tab <?= $activeClsM ?>" href="orders.php?vista=mesas&mesaId=<?= $mesaSel ?>&comensal=<?= htmlspecialchars($comensalSel) ?>&catMesa=<?= (int) $rcm['id_categoria'] ?>"><?= htmlspecialchars($rcm['nombre']) ?></a>
@@ -641,19 +558,10 @@ $q         = $_GET['q'] ?? null;
             <?php /* ---- Grid de productos segun filtro/busqueda ---- */ ?>
             <div class="product-grid">
                 <?php
-                    $sqlM = "SELECT p.id_producto, p.nombre, p.precio, p.emoji, sc.nombre AS subcat
-                             FROM productos p
-                             JOIN subcategorias sc ON p.id_subcategoria = sc.id_subcategoria
-                             JOIN categorias c ON sc.id_categoria = c.id_categoria
-                             WHERE p.activo = 1 ";
-                    $paramsM = [];
-                    if ($catMesa !== null && $catMesa !== '') { $sqlM .= 'AND c.id_categoria = ? '; $paramsM[] = (int) $catMesa; }
-                    if ($qMesa !== null && trim($qMesa) !== '') { $sqlM .= 'AND p.nombre LIKE ? '; $paramsM[] = '%' . trim($qMesa) . '%'; }
-                    $sqlM .= 'ORDER BY p.nombre';
-
-                    $psPM = $pdoM->prepare($sqlM);
-                    $psPM->execute($paramsM);
-                    $productosM = $psPM->fetchAll();
+                    $productosM = buscarProductos(
+                        ($catMesa !== null && $catMesa !== '') ? (int) $catMesa : null,
+                        $qMesa
+                    );
 
                     if (empty($productosM)):
                 ?>
@@ -713,10 +621,8 @@ $q         = $_GET['q'] ?? null;
                 <div class="ticket-empty"><span>Sin productos</span><span class="text-muted text-xs">Toca un producto para agregar</span></div>
             <?php
                 else:
-                    $psTM = $pdoM->prepare('SELECT nombre, precio FROM productos WHERE id_producto = ?');
                     foreach ($carritoSel as $idProd => $cant):
-                        $psTM->execute([$idProd]);
-                        $rtm = $psTM->fetch();
+                        $rtm = productoPorId((int) $idProd);
                         if ($rtm):
                             $subM = $rtm['precio'] * $cant;
                             $totalMesa += $subM;

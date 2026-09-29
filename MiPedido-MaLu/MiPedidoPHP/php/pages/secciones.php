@@ -7,39 +7,34 @@
  */
 $rolesPermitidos = ['supervisor', 'gerente'];
 require_once __DIR__ . '/../includes/auth-check.php';
-require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . '/../includes/datos.php';
 
 $accion = $_POST['accion'] ?? null;
 $toast = null;
 
 if ($accion !== null && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $pdo = getConnection();
     try {
         if ($accion === 'nuevaSeccion') {
             $nombre = $_POST['nombre'];
-            $pdo->prepare("INSERT INTO secciones (nombre, estado) VALUES (?, 'activa')")->execute([$nombre]);
+            crearSeccion($nombre);
             $toast = "Seccion \"$nombre\" creada.";
 
         } elseif ($accion === 'nuevaCategoria') {
             $idSeccion = (int) $_POST['idSeccion'];
             $nombre = $_POST['nombre'];
-            $pdo->prepare('INSERT INTO categorias (nombre, id_seccion) VALUES (?, ?)')->execute([$nombre, $idSeccion]);
+            crearCategoria($nombre, $idSeccion);
             $toast = "Categoria \"$nombre\" agregada.";
 
         } elseif ($accion === 'eliminarCategoria') {
-            $idCategoria = (int) $_POST['idCategoria'];
-            $pdo->prepare('DELETE FROM categorias WHERE id_categoria = ?')->execute([$idCategoria]);
+            eliminarCategoria((int) $_POST['idCategoria']);
             $toast = 'Categoria eliminada.';
 
         } elseif ($accion === 'asignarUsuario') {
-            $idUsuario = (int) $_POST['idUsuario'];
-            $idSeccion = (int) $_POST['idSeccion'];
-            $pdo->prepare('UPDATE usuarios SET id_seccion = ? WHERE id_usuario = ?')->execute([$idSeccion, $idUsuario]);
+            asignarSeccion((int) $_POST['idUsuario'], (int) $_POST['idSeccion']);
             $toast = 'Usuario asignado a la seccion.';
 
         } elseif ($accion === 'quitarUsuario') {
-            $idUsuario = (int) $_POST['idUsuario'];
-            $pdo->prepare('UPDATE usuarios SET id_seccion = NULL WHERE id_usuario = ?')->execute([$idUsuario]);
+            asignarSeccion((int) $_POST['idUsuario'], null);
             $toast = 'Usuario removido de la seccion.';
         }
     } catch (Exception $ex) {
@@ -87,9 +82,7 @@ if ($toast === null) {
 
     <div class="secciones-grid">
     <?php
-        $pdo = getConnection();
-        $rsSec = $pdo->query('SELECT * FROM secciones ORDER BY id_seccion');
-        foreach ($rsSec->fetchAll() as $rsec):
+        foreach (listarSecciones() as $rsec):
             $idSeccion = (int) $rsec['id_seccion'];
             $claseHeader = $idSeccion === 1 ? 'restaurante' : ($idSeccion === 2 ? 'bar' : 'default');
     ?>
@@ -104,9 +97,7 @@ if ($toast === null) {
                     <div class="sec-sub-label">Categorias</div>
                     <div class="cat-chips">
                     <?php
-                        $psCat = $pdo->prepare('SELECT * FROM categorias WHERE id_seccion = ?');
-                        $psCat->execute([$idSeccion]);
-                        foreach ($psCat->fetchAll() as $rcat):
+                        foreach (categoriasDeSeccion($idSeccion) as $rcat):
                     ?>
                         <div class="cat-chip">
                             <?= htmlspecialchars($rcat['nombre']) ?>
@@ -133,9 +124,7 @@ if ($toast === null) {
                     <div class="sec-sub-label">Usuarios asignados</div>
                     <div class="user-list">
                     <?php
-                        $psUsr = $pdo->prepare("SELECT id_usuario, nombre, rol FROM usuarios WHERE id_seccion = ? AND activo = 1");
-                        $psUsr->execute([$idSeccion]);
-                        foreach ($psUsr->fetchAll() as $rusr):
+                        foreach (usuariosDeSeccion($idSeccion) as $rusr):
                     ?>
                         <div class="user-item">
                             <div class="user-avatar color-1"><?= htmlspecialchars(strtoupper(mb_substr($rusr['nombre'], 0, 1))) ?></div>
@@ -159,11 +148,7 @@ if ($toast === null) {
                         <select name="idUsuario" required style="font-size:12px;padding:6px;border-radius:6px;border:1px solid var(--card-border);flex:1">
                             <option value="">-- Elegir usuario --</option>
                             <?php
-                                $psLibres = $pdo->prepare(
-                                    "SELECT id_usuario, nombre FROM usuarios WHERE (id_seccion IS NULL OR id_seccion != ?) AND rol='cashier' AND activo=1"
-                                );
-                                $psLibres->execute([$idSeccion]);
-                                foreach ($psLibres->fetchAll() as $rlib):
+                                foreach (cashiersFueraDeSeccion($idSeccion) as $rlib):
                             ?>
                                 <option value="<?= (int) $rlib['id_usuario'] ?>"><?= htmlspecialchars($rlib['nombre']) ?></option>
                             <?php endforeach; ?>

@@ -3,12 +3,12 @@
  * ============================================================
  * sobre-nosotros.php — Pagina publica "Sobre Nosotros"
  * Muestra la foto, nombre, cedula, carrera y resumen de
- * experiencia de cada integrante, leyendo estos datos
- * DIRECTAMENTE de la tabla `usuarios` en MySQL.
+ * experiencia de cada integrante, leyendo estos datos de
+ * ejemplo de listarEquipo() en includes/datos.php.
  * ============================================================
  */
 require_once __DIR__ . '/includes/config.php';
-require_once __DIR__ . '/includes/db.php';
+require_once __DIR__ . '/includes/datos.php';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -33,39 +33,18 @@ require_once __DIR__ . '/includes/db.php';
         </section>
 
         <section class="team-grid">
-            <?php
-                // Consultamos todos los usuarios activos para mostrarlos como equipo del proyecto
-                try {
-                    $pdo = getConnection();
-                    $stmt = $pdo->query(
-                        "SELECT nombre, cedula, carrera, rol, resumen_dev, foto_url
-                         FROM usuarios WHERE activo = 1 ORDER BY
-                         FIELD(rol,'gerente','supervisor','cashier','comandas')"
-                    );
-                    while ($u = $stmt->fetch()) {
-                        $foto = $u['foto_url'] ?: 'img/team/placeholder.jpg';
-            ?>
-                        <article class="team-card">
-                            <img src="<?= htmlspecialchars($foto) ?>"
-                                 alt="Foto de <?= htmlspecialchars($u['nombre']) ?>"
-                                 class="team-photo">
-                            <h3><?= htmlspecialchars($u['nombre']) ?></h3>
-                            <div class="team-role"><?= htmlspecialchars(strtoupper($u['rol'])) ?></div>
-                            <div class="team-meta">Cedula: <?= htmlspecialchars($u['cedula']) ?></div>
-                            <div class="team-meta">Carrera: <?= htmlspecialchars($u['carrera']) ?></div>
-                            <p class="team-resumen"><?= htmlspecialchars($u['resumen_dev']) ?></p>
-                        </article>
-            <?php
-                    }
-                } catch (Exception $e) {
-            ?>
-                    <div class="alert-box alert-error">
-                        ⚠ No se pudo conectar a la base de datos: <?= htmlspecialchars($e->getMessage()) ?>.
-                        Verifica que XAMPP (MySQL) este encendido y que la base "mipedido_db" exista.
-                    </div>
-            <?php
-                }
-            ?>
+            <?php foreach (listarEquipo() as $u): ?>
+                <article class="team-card">
+                    <img src="<?= IMG_URL . htmlspecialchars($u['foto']) ?>"
+                         alt="Foto de <?= htmlspecialchars($u['nombre']) ?>"
+                         class="team-photo">
+                    <h3><?= htmlspecialchars($u['nombre']) ?></h3>
+                    <div class="team-role"><?= htmlspecialchars(strtoupper($u['rol'])) ?></div>
+                    <div class="team-meta">Cedula: <?= htmlspecialchars($u['cedula']) ?></div>
+                    <div class="team-meta">Carrera: <?= htmlspecialchars($u['carrera']) ?></div>
+                    <p class="team-resumen"><?= htmlspecialchars($u['resumen']) ?></p>
+                </article>
+            <?php endforeach; ?>
         </section>
     </main>
 

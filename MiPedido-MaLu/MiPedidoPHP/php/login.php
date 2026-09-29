@@ -2,7 +2,8 @@
 /**
  * ============================================================
  * login.php — Formulario de inicio de sesion
- * Valida usuario y contrasena contra la tabla `usuarios` de MySQL.
+ * Valida usuario y contrasena contra los usuarios de ejemplo
+ * definidos en includes/datos.php (ya no se usa base de datos).
  * Al validar, guarda rol/nombre/seccion en la SESION y redirige
  * segun el rol:
  *    gerente / supervisor / cashier -> pages/orders.php
@@ -10,7 +11,7 @@
  * ============================================================
  */
 require_once __DIR__ . '/includes/config.php';
-require_once __DIR__ . '/includes/db.php';
+require_once __DIR__ . '/includes/datos.php';
 
 $error = null;
 
@@ -22,38 +23,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($email === '' || $pass === '') {
         $error = 'Debes ingresar usuario y contrasena.';
     } else {
-        try {
-            $pdo = getConnection();
-            // Consulta parametrizada (evita inyeccion SQL)
-            $stmt = $pdo->prepare(
-                "SELECT u.id_usuario, u.nombre, u.rol, u.id_seccion, s.nombre AS seccion_nombre
-                 FROM usuarios u LEFT JOIN secciones s ON u.id_seccion = s.id_seccion
-                 WHERE u.email = ? AND u.password = ? AND u.activo = 1"
-            );
-            $stmt->execute([$email, $pass]);
-            $row = $stmt->fetch();
+        // Buscamos el usuario en los datos de ejemplo
+        $row = autenticarUsuario($email, $pass);
 
-            if ($row) {
-                // Credenciales correctas -> creamos la sesion
-                $_SESSION['idUsuario'] = (int) $row['id_usuario'];
-                $_SESSION['nombre']    = $row['nombre'];
-                $_SESSION['rol']       = $row['rol'];
-                // id_seccion puede ser NULL en la BD (gerente/supervisor/comandas
-                // no tienen seccion). PDO devuelve null tal cual en ese caso.
-                $_SESSION['idSeccion']     = $row['id_seccion'] !== null ? (int) $row['id_seccion'] : null;
-                $_SESSION['seccionNombre'] = $row['seccion_nombre'] ?? '';
+        if ($row) {
+            // Credenciales correctas -> creamos la sesion
+            $_SESSION['idUsuario'] = (int) $row['id_usuario'];
+            $_SESSION['nombre']    = $row['nombre'];
+            $_SESSION['rol']       = $row['rol'];
+            // id_seccion es null para gerente/supervisor/comandas (no tienen seccion)
+            $_SESSION['idSeccion']     = $row['id_seccion'] !== null ? (int) $row['id_seccion'] : null;
+            $_SESSION['seccionNombre'] = $row['seccion_nombre'] ?? '';
 
-                if ($row['rol'] === 'comandas') {
-                    header('Location: pages/comandas.php');
-                } else {
-                    header('Location: pages/orders.php');
-                }
-                exit;
+            if ($row['rol'] === 'comandas') {
+                header('Location: pages/comandas.php');
             } else {
-                $error = 'Usuario o contrasena incorrectos.';
+                header('Location: pages/orders.php');
             }
-        } catch (Exception $e) {
-            $error = 'Error de conexion con la base de datos: ' . $e->getMessage();
+            exit;
+        } else {
+            $error = 'Usuario o contrasena incorrectos.';
         }
     }
 }
@@ -70,14 +59,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="<?= CSS_URL ?>login.css">
 </head>
 <body class="login-body">
-
+  <?php require __DIR__ . '/includes/header.php'; ?>
 
 
   <div class="login-wrapper" style="grid-template-areas:'brand brand' 'card card'; grid-template-columns:1fr;">
 
     <div class="login-brand">
-      <span class="login-logo"><em>MiPedido</em><span class="dot">.</span></span>
-      <p class="login-sub">Restaurante MaLu</p>
+      <br>
     </div>
 
     <div class="login-card" style="max-width:420px;margin:0 auto;">
