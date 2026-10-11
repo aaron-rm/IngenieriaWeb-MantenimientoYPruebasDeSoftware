@@ -98,95 +98,31 @@ function datosIniciales(): array
     // ---- Mesas ----
     $mesas = [];
     foreach ([
-        [1, 4, 'libre'], [2, 4, 'ocupada'], [3, 2, 'ocupada'], [4, 2, 'libre'],
-        [5, 6, 'libre'], [6, 4, 'ocupada'], [7, 4, 'libre'],   [8, 2, 'libre'],
+        [1, 4, 'libre'], [2, 4, 'libre'],
+        [3, 2, 'libre'], [4, 2, 'libre'],
+        [5, 6, 'libre'], [6, 4, 'libre'],
+        [7, 4, 'libre'], [8, 2, 'libre'],
     ] as [$id, $capacidad, $estado]) {
-        $mesas[$id] = ['id_mesa' => $id, 'numero' => $id, 'capacidad' => $capacidad, 'estado' => $estado];
+        $mesas[$id] = [
+            'id_mesa' => $id,
+            'numero' => $id,
+            'capacidad' => $capacidad,
+            'estado' => $estado
+        ];
     }
 
-    // ---- Pedidos, detalles y facturas de ejemplo (del dia de hoy) ----
-    // Las horas se calculan "hace N minutos" para que el Diario de Ventas
-    // y la pantalla de Comandas siempre tengan algo que mostrar.
-    $ahora     = time();
-    $inicioDia = strtotime('today 00:01');
-    $hace = function (int $min) use ($ahora, $inicioDia): string {
-        return date('Y-m-d H:i:s', max($ahora - $min * 60, $inicioDia));
-    };
-
-    // [origen, id_mesa, comensal, id_usuario, id_seccion, estado, nota, metodo_pago, cobrado, minutos, [[id_producto, cantidad], ...]]
-    $semilla = [
-        // En cocina (aparecen en Comandas)
-        ['rapido', null, null, 3, 1, 'pendiente',      'Sin cebolla', null, 0, 12, [[1, 2], [10, 2]]],
-        ['mesa',   2,    'C1', 4, 1, 'en_preparacion', null,          null, 0, 8,  [[2, 1], [4, 1]]],
-        // Listo en cocina, esperando cobro (aparece en Orders > "Listos en cocina")
-        ['mesa',   3,    'C1', 3, 1, 'listo',          null,          null, 0, 5,  [[7, 1], [8, 1], [12, 1]]],
-        // Ya cobrados (aparecen en el Diario de Ventas)
-        ['rapido', null, null, 3, 1, 'entregado',      null, 'efectivo', 1, 110, [[9, 1], [10, 1]]],
-        ['mesa',   1,    'C1', 4, 1, 'entregado',      null, 'tarjeta',  1, 95,  [[5, 2], [12, 1]]],
-        ['rapido', null, null, 5, 2, 'entregado',      null, 'yappy',    1, 70,  [[15, 3], [17, 1]]],
-        ['rapido', null, null, 3, 1, 'entregado',      null, 'efectivo', 1, 55,  [[2, 1], [6, 1], [11, 1]]],
-        ['mesa',   4,    'C1', 4, 1, 'entregado',      null, 'yappy',    1, 40,  [[1, 1], [4, 1], [10, 1]]],
-        ['rapido', null, null, 5, 2, 'entregado',      null, 'tarjeta',  1, 25,  [[16, 2], [18, 1]]],
-        ['mesa',   5,    'C1', 3, 1, 'entregado',      null, 'efectivo', 1, 18,  [[7, 2], [8, 1], [13, 1]]],
-    ];
-
+    
+    // ---- Pedidos, detalles y facturas ----
+    // La aplicación comienza sin operaciones previas.
     $pedidos = [];
     $detalles = [];
     $facturas = [];
+
+    // Los contadores comienzan desde cero.
     $idPedido = 0;
     $idDetalle = 0;
     $idFactura = 0;
 
-    foreach ($semilla as [$origen, $idMesa, $comensal, $idUsuario, $idSeccion, $estado, $nota, $metodo, $cobrado, $min, $items]) {
-        $idPedido++;
-        $total = 0.0;
-        $esPrimero = true;
-        foreach ($items as [$idProd, $cant]) {
-            $idDetalle++;
-            $total += $productos[$idProd]['precio'] * $cant;
-            // Listos/entregados tienen todo tachado; en preparacion, el primer plato ya salio
-            $preparado = ($estado === 'listo' || $estado === 'entregado' || ($estado === 'en_preparacion' && $esPrimero)) ? 1 : 0;
-            $esPrimero = false;
-            $detalles[$idDetalle] = [
-                'id_detalle'  => $idDetalle,
-                'id_pedido'   => $idPedido,
-                'id_producto' => $idProd,
-                'cantidad'    => $cant,
-                'nota'        => null,
-                'preparado'   => $preparado,
-            ];
-        }
-
-        $fecha = $hace($min);
-        $pedidos[$idPedido] = [
-            'id_pedido'     => $idPedido,
-            'numero_pedido' => $idPedido,
-            'origen'        => $origen,
-            'id_mesa'       => $idMesa,
-            'comensal'      => $comensal,
-            'id_usuario'    => $idUsuario,
-            'id_seccion'    => $idSeccion,
-            'estado'        => $estado,
-            'nota'          => $nota,
-            'metodo_pago'   => $metodo,
-            'total'         => $total,
-            'cobrado'       => $cobrado,
-            'fecha_hora'    => $fecha,
-        ];
-
-        if ($cobrado) {
-            $idFactura++;
-            $facturas[$idFactura] = [
-                'id_factura'  => $idFactura,
-                'id_pedido'   => $idPedido,
-                'total'       => $total,
-                'metodo_pago' => $metodo,
-                'id_seccion'  => $idSeccion,
-                'anulada'     => 0,
-                'fecha_hora'  => $fecha,
-            ];
-        }
-    }
 
     return [
         'secciones'     => $secciones,
