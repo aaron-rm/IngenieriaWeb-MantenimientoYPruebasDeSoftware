@@ -1,0 +1,236 @@
+/* ============================================================
+   SECCIONES PAGE — fiel al wireframe slide 9
+   Dos cards grandes: Restaurante (pink header) y Bar (dark header)
+   Categorías como pills/chips outline
+   Usuarios con avatar circular, iniciales
+   Botones "+" en pink al fondo de cada card
+   ============================================================ */
+
+.secciones-toprow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--sp-5);
+}
+
+.secciones-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: var(--sp-5);
+}
+
+/* Section card */
+.seccion-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Header — Restaurante = pink, Bar = dark, others = card-border */
+.seccion-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-4) var(--sp-5);
+}
+
+.seccion-card-header.restaurante {
+  background: var(--pink);
+}
+.seccion-card-header.bar {
+  background: var(--sidebar-bg);
+}
+.seccion-card-header.default {
+  background: var(--content-bg);
+  border-bottom: 1px solid var(--divider);
+}
+
+.seccion-name {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-white);
+  letter-spacing: -0.3px;
+}
+.seccion-card-header.default .seccion-name { color: var(--text-primary); }
+
+.seccion-header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.seccion-estado {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.75);
+  letter-spacing: 0.06em;
+}
+.seccion-card-header.default .seccion-estado { color: var(--green); }
+
+.btn-edit-sec {
+  background: rgba(255,255,255,0.15);
+  border: none;
+  color: rgba(255,255,255,0.85);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+.btn-edit-sec:hover { background: rgba(255,255,255,0.25); color: #fff; }
+.seccion-card-header.default .btn-edit-sec {
+  background: var(--content-bg);
+  color: var(--text-secondary);
+  border: 1px solid var(--card-border);
+}
+
+/* Card body */
+.seccion-body {
+  padding: var(--sp-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+
+/* Section sub-labels */
+.sec-sub-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: var(--sp-3);
+}
+
+/* Category chips — outline pill style like wireframe */
+.cat-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  align-items: center;
+}
+
+.cat-chip {
+  background: var(--card-bg);
+  border: 1.5px solid var(--card-border);
+  border-radius: var(--r-full);
+  padding: var(--sp-2) var(--sp-4);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.btn-chip-remove {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color var(--t-fast);
+}
+.btn-chip-remove:hover { color: var(--coral); }
+
+.btn-add-cat {
+  background: none;
+  border: 1.5px solid var(--card-border);
+  border-radius: var(--r-full);
+  padding: var(--sp-2) var(--sp-4);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--pink);
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+.btn-add-cat:hover { border-color: var(--pink); background: var(--pink-bg); }
+
+/* User list */
+.user-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.user-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+/* Circular avatar with initials */
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  flex-shrink: 0;
+  color: var(--text-white);
+}
+
+/* Rotate through a few colors for avatars */
+.user-avatar.color-0 { background: #e07850; }
+.user-avatar.color-1 { background: var(--pink); }
+.user-avatar.color-2 { background: #6b7280; }
+.user-avatar.color-3 { background: #8b5cf6; }
+.user-avatar.color-4 { background: #059669; }
+
+.user-info { flex: 1; }
+.user-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+.user-role {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.btn-user-remove {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 15px;
+  cursor: pointer;
+  transition: color var(--t-fast);
+  padding: 2px;
+}
+.btn-user-remove:hover { color: var(--coral); }
+
+/* "+" pink link at bottom — like wireframe */
+.btn-asignar {
+  background: none;
+  border: none;
+  color: var(--pink);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: var(--sp-2) 0;
+  transition: color var(--t-fast);
+  text-align: left;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+}
+.btn-asignar:hover { color: var(--pink-hover); text-decoration: underline; }
+
+/* Divider in card body */
+.sec-divider {
+  border: none;
+  border-top: 1px solid var(--divider);
+}
+
+@media (max-width: 700px) {
+  .secciones-grid { grid-template-columns: 1fr; }
+}

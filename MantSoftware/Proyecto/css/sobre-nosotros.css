@@ -1,0 +1,40 @@
+/* ============================================================
+   SOBRE-NOSOTROS.CSS
+   ============================================================ */
+.team-intro { text-align: center; margin-bottom: 32px; }
+.team-intro h1 { font-size: 28px; color: var(--text-primary); margin-bottom: 10px; }
+.team-intro p { color: var(--text-secondary); max-width: 640px; margin: 0 auto; font-size: 14px; }
+
+.team-card h3 { font-size: 15px; color: var(--text-primary); margin-bottom: 4px; }
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.team-card {
+  background: #fff;
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+.team-photo {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--pink-light);
+  margin-bottom: 12px;
+}
+.team-card h3 { font-size: 15px; color: var(--text-primary); }
+.team-role {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--pink);
+  letter-spacing: 0.08em;
+  margin: 4px 0 8px;
+}
+.team-meta { font-size: 12px; color: var(--text-secondary); }
+.team-resumen { font-size: 12px; color: var(--text-muted); margin-top: 10px; line-height: 1.5; }
