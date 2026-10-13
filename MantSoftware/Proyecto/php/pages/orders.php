@@ -49,12 +49,14 @@ if ($accion !== null && $_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         if ($accion === 'addRapido') {
             $idProd = (int) $_POST['idProducto'];
+            validarStockAgregar($idProd, $carritoRapido[$idProd] ?? 0);
             $carritoRapido[$idProd] = ($carritoRapido[$idProd] ?? 0) + 1;
 
         } elseif ($accion === 'qtyRapido') {
             $idProd = (int) $_POST['idProducto'];
             $delta  = (int) $_POST['delta'];
             if (isset($carritoRapido[$idProd])) {
+                if ($delta > 0) validarStockAgregar($idProd, $carritoRapido[$idProd], $delta);
                 $nueva = $carritoRapido[$idProd] + $delta;
                 if ($nueva <= 0) unset($carritoRapido[$idProd]);
                 else $carritoRapido[$idProd] = $nueva;
@@ -131,6 +133,7 @@ if ($accion !== null && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $idProd   = (int) $_POST['idProducto'];
             $clave    = $idMesa . '_' . $comensal;
             $carritoC = $carritosMesa[$clave] ?? [];
+            validarStockAgregar($idProd, $carritoC[$idProd] ?? 0);
             $carritoC[$idProd] = ($carritoC[$idProd] ?? 0) + 1;
             $carritosMesa[$clave] = $carritoC;
             // marcar mesa como ocupada
@@ -143,6 +146,7 @@ if ($accion !== null && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $delta    = (int) $_POST['delta'];
             $clave    = $idMesa . '_' . $comensal;
             if (isset($carritosMesa[$clave][$idProd])) {
+                if ($delta > 0) validarStockAgregar($idProd, $carritosMesa[$clave][$idProd], $delta);
                 $nueva = $carritosMesa[$clave][$idProd] + $delta;
                 if ($nueva <= 0) unset($carritosMesa[$clave][$idProd]);
                 else $carritosMesa[$clave][$idProd] = $nueva;
@@ -260,7 +264,8 @@ $q         = $_GET['q'] ?? null;
 <main class="main-content" style="min-height:auto">
 
     <?php if ($toast !== null): ?>
-        <div class="alert-box alert-success">✅ <?= htmlspecialchars($toast) ?></div>
+        <?php $toastEsError = (strpos($toast, 'Error') === 0); ?>
+        <div class="alert-box <?= $toastEsError ? 'alert-error' : 'alert-success' ?>"><?= $toastEsError ? '⚠' : '✅' ?> <?= htmlspecialchars($toast) ?></div>
     <?php endif; ?>
 
     <!-- Tabs Pedido rapido / Mesas (navegacion simple por enlace, sin JS) -->
@@ -324,9 +329,9 @@ $q         = $_GET['q'] ?? null;
                         <input type="hidden" name="accion" value="addRapido">
                         <input type="hidden" name="vista" value="rapido">
                         <input type="hidden" name="idProducto" value="<?= (int) $rb['id_producto'] ?>">
-                        <button type="submit" class="bestseller-chip" style="border:1px solid var(--card-border)">
+                        <button type="submit" class="bestseller-chip" style="border:1px solid var(--card-border)" <?= ((int) $rb['stock'] <= 0) ? 'disabled' : '' ?>>
                             <span><?= htmlspecialchars($rb['nombre']) ?></span>
-                            <span class="chip-price">$<?= number_format($rb['precio'], 2) ?></span>
+                            <span class="chip-price">$<?= number_format($rb['precio'], 2) ?> · <?= ((int) $rb['stock'] <= 0) ? 'Agotado' : (int) $rb['stock'] ?></span>
                         </button>
                     </form>
                 <?php endforeach; ?>
@@ -360,12 +365,13 @@ $q         = $_GET['q'] ?? null;
                         <input type="hidden" name="accion" value="addRapido">
                         <input type="hidden" name="vista" value="rapido">
                         <input type="hidden" name="idProducto" value="<?= (int) $rp2['id_producto'] ?>">
-                        <button type="submit" class="product-card" style="border:none;text-align:left;cursor:pointer">
+                        <button type="submit" class="product-card <?= ($rp2['stock'] <= 0) ? 'agotado' : '' ?>" style="border:none;text-align:left;cursor:pointer" <?= ($rp2['stock'] <= 0) ? 'disabled' : '' ?>>
                             <div class="product-img"><span style="font-size:32px"><?= $rp2['emoji'] ?></span></div>
                             <div class="product-body">
                                 <div class="product-name"><?= htmlspecialchars($rp2['nombre']) ?></div>
                                 <div class="product-price">$<?= number_format($rp2['precio'], 2) ?></div>
                                 <div class="product-cat-badge"><?= htmlspecialchars($rp2['subcat']) ?></div>
+                                <div class="product-stock <?= ($rp2['stock'] <= 0) ? 'stock-out' : (($rp2['stock'] <= 5) ? 'stock-low' : '') ?>"><?= ($rp2['stock'] <= 0) ? 'Agotado' : 'Disponibles: ' . (int) $rp2['stock'] ?></div>
                             </div>
                         </button>
                     </form>
@@ -535,9 +541,9 @@ $q         = $_GET['q'] ?? null;
                         <input type="hidden" name="idMesa" value="<?= $mesaSel ?>">
                         <input type="hidden" name="comensal" value="<?= htmlspecialchars($comensalSel) ?>">
                         <input type="hidden" name="idProducto" value="<?= (int) $rbm['id_producto'] ?>">
-                        <button type="submit" class="bestseller-chip" style="border:1px solid var(--card-border)">
+                        <button type="submit" class="bestseller-chip" style="border:1px solid var(--card-border)" <?= ((int) $rbm['stock'] <= 0) ? 'disabled' : '' ?>>
                             <span><?= htmlspecialchars($rbm['nombre']) ?></span>
-                            <span class="chip-price">$<?= number_format($rbm['precio'], 2) ?></span>
+                            <span class="chip-price">$<?= number_format($rbm['precio'], 2) ?> · <?= ((int) $rbm['stock'] <= 0) ? 'Agotado' : (int) $rbm['stock'] ?></span>
                         </button>
                     </form>
                 <?php endforeach; ?>
@@ -573,12 +579,13 @@ $q         = $_GET['q'] ?? null;
                         <input type="hidden" name="idMesa" value="<?= $mesaSel ?>">
                         <input type="hidden" name="comensal" value="<?= htmlspecialchars($comensalSel) ?>">
                         <input type="hidden" name="idProducto" value="<?= (int) $rpm['id_producto'] ?>">
-                        <button type="submit" class="product-card" style="border:none;text-align:left;cursor:pointer">
+                        <button type="submit" class="product-card <?= ($rpm['stock'] <= 0) ? 'agotado' : '' ?>" style="border:none;text-align:left;cursor:pointer" <?= ($rpm['stock'] <= 0) ? 'disabled' : '' ?>>
                             <div class="product-img"><span style="font-size:32px"><?= $rpm['emoji'] ?></span></div>
                             <div class="product-body">
                                 <div class="product-name"><?= htmlspecialchars($rpm['nombre']) ?></div>
                                 <div class="product-price">$<?= number_format($rpm['precio'], 2) ?></div>
                                 <div class="product-cat-badge"><?= htmlspecialchars($rpm['subcat']) ?></div>
+                                <div class="product-stock <?= ($rpm['stock'] <= 0) ? 'stock-out' : (($rpm['stock'] <= 5) ? 'stock-low' : '') ?>"><?= ($rpm['stock'] <= 0) ? 'Agotado' : 'Disponibles: ' . (int) $rpm['stock'] ?></div>
                             </div>
                         </button>
                     </form>

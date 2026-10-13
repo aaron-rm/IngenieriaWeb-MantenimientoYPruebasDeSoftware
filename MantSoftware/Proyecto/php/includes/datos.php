@@ -63,6 +63,11 @@ function datosIniciales(): array
 
     // ---- Productos ----
     // [id, nombre, precio, id_subcategoria, emoji, mas_vendido]
+    // El stock inicial de cada producto esta en $stockInicial (por id).
+    $stockInicial = [
+        1 => 15, 2 => 15, 3 => 12, 4 => 20, 5 => 12, 6 => 15, 7 => 20, 8 => 25, 9 => 15,
+        10 => 50, 11 => 50, 12 => 30, 13 => 40, 14 => 15, 15 => 60, 16 => 20, 17 => 25, 18 => 25,
+    ];
     $productos = [];
     foreach ([
         [1,  'Ceviche',          8.50,  3,  '🐟', 1],
@@ -91,6 +96,7 @@ function datosIniciales(): array
             'id_subcategoria' => $idSubcat,
             'emoji'           => $emoji,
             'mas_vendido'     => $masVendido,
+            'stock'           => $stockInicial[$id] ?? 20,
             'activo'          => 1,
         ];
     }
@@ -138,6 +144,7 @@ function datosIniciales(): array
         'seq' => [
             'secciones'  => 2,
             'categorias' => 5,
+            'productos'  => 18,
             'pedidos'    => $idPedido,
             'detalles'   => $idDetalle,
             'facturas'   => $idFactura,
@@ -354,10 +361,155 @@ function buscarProductos(?int $idCategoria = null, ?string $texto = null): array
             'precio'      => $p['precio'],
             'emoji'       => $p['emoji'],
             'subcat'      => $sc['nombre'],
+            'stock'       => (int) ($p['stock'] ?? 0),
         ];
     }
     usort($res, fn($a, $b) => strcasecmp($a['nombre'], $b['nombre']));
     return $res;
+}
+
+/** Todas las subcategorias con el nombre de su categoria (para los formularios). */
+function listarSubcategorias(): array
+{
+    $d = datosRef();
+    $res = [];
+    foreach ($d['subcategorias'] as $sc) {
+        $cat = $d['categorias'][$sc['id_categoria']] ?? null;
+        $res[] = [
+            'id_subcategoria' => $sc['id_subcategoria'],
+            'nombre'          => $sc['nombre'],
+            'categoria'       => $cat['nombre'] ?? '',
+        ];
+    }
+    return $res;
+}
+
+/** Productos activos con su subcategoria y stock, ordenados por nombre (vista de inventario). */
+function listarProductosConStock(): array
+{
+    $d = datosRef();
+    $res = [];
+    foreach ($d['productos'] as $p) {
+        if (!$p['activo']) continue;
+        $sc  = $d['subcategorias'][$p['id_subcategoria']] ?? null;
+        $cat = $sc ? ($d['categorias'][$sc['id_categoria']] ?? null) : null;
+        $p['stock']     = (int) ($p['stock'] ?? 0);
+        $p['subcat']    = $sc['nombre'] ?? '';
+        $p['categoria'] = $cat['nombre'] ?? '';
+        $res[] = $p;
+    }
+    usort($res, fn($a, $b) => strcasecmp($a['nombre'], $b['nombre']));
+    return $res;
+}
+
+/** Valida los datos de un producto; lanza Exception si algo no es valido. */
+function validarDatosProducto(string $nombre, $precio, int $idSubcategoria, int $stock): void
+{
+    $d = datosRef();
+    if (trim($nombre) === '') {
+        throw new Exception('El nombre del plato no puede estar vacio.');
+    }
+    if (!is_numeric($precio) || (float) $precio < 0) {
+        throw new Exception('El precio debe ser un numero mayor o igual a 0.');
+    }
+    if (!isset($d['subcategorias'][$idSubcategoria])) {
+        throw new Exception('La subcategoria indicada no existe.');
+    }
+    if ($stock < 0) {
+        throw new Exception('El stock no puede ser negativo.');
+    }
+}
+
+function crearProducto(string $nombre, $precio, int $idSubcategoria, string $emoji, int $stock, bool $masVendido = false): int
+{
+    $nombre = trim($nombre);
+    validarDatosProducto($nombre, $precio, $idSubcategoria, $stock);
+    $id = siguienteId('productos');
+    $d = &datosRef();
+    $d['productos'][$id] = [
+        'id_producto'     => $id,
+        'nombre'          => $nombre,
+        'precio'          => round((float) $precio, 2),
+        'id_subcategoria' => $idSubcategoria,
+        'emoji'           => trim($emoji) !== '' ? trim($emoji) : '🍽️',
+        'mas_vendido'     => $masVendido ? 1 : 0,
+        'stock'           => $stock,
+        'activo'          => 1,
+    ];
+    return $id;
+}
+
+function actualizarProducto(int $idProducto, string $nombre, $precio, int $idSubcategoria, string $emoji, int $stock, bool $masVendido): void
+{
+    $nombre = trim($nombre);
+    validarDatosProducto($nombre, $precio, $idSubcategoria, $stock);
+    $d = &datosRef();
+    if (!isset($d['productos'][$idProducto]) || !$d['productos'][$idProducto]['activo']) {
+        throw new Exception('El plato indicado no existe.');
+    }
+    $d['productos'][$idProducto]['nombre']          = $nombre;
+    $d['productos'][$idProducto]['precio']          = round((float) $precio, 2);
+    $d['productos'][$idProducto]['id_subcategoria'] = $idSubcategoria;
+    $d['productos'][$idProducto]['emoji']           = trim($emoji) !== '' ? trim($emoji) : '🍽️';
+    $d['productos'][$idProducto]['stock']           = $stock;
+    $d['productos'][$idProducto]['mas_vendido']     = $masVendido ? 1 : 0;
+}
+
+/**
+ * Elimina un plato del catalogo. Es un borrado logico (activo = 0) para no
+ * romper los pedidos y facturas que ya lo usan.
+ */
+function eliminarProducto(int $idProducto): void
+{
+    $d = &datosRef();
+    if (!isset($d['productos'][$idProducto])) {
+        throw new Exception('El plato indicado no existe.');
+    }
+    $d['productos'][$idProducto]['activo'] = 0;
+}
+
+/** Unidades disponibles de un producto (0 si no existe). */
+function stockDisponible(int $idProducto): int
+{
+    $d = datosRef();
+    return (int) ($d['productos'][$idProducto]['stock'] ?? 0);
+}
+
+/**
+ * Verifica que haya stock suficiente para sumar $cantidadExtra unidades a
+ * lo que ya hay en un carrito [idProducto => cantidad]. Lanza Exception si no.
+ */
+function validarStockAgregar(int $idProducto, int $cantidadEnCarrito, int $cantidadExtra = 1): void
+{
+    $p = productoPorId($idProducto);
+    if (!$p || !$p['activo']) {
+        throw new Exception('Ese plato ya no esta disponible.');
+    }
+    $stock = (int) ($p['stock'] ?? 0);
+    if ($cantidadEnCarrito + $cantidadExtra > $stock) {
+        throw new Exception($stock <= 0
+            ? $p['nombre'] . ' esta agotado.'
+            : 'Stock insuficiente de ' . $p['nombre'] . ': solo hay ' . $stock . ' disponible(s).');
+    }
+}
+
+/** Verifica el stock de todo un carrito antes de crear el pedido. */
+function validarStockCarrito(array $carrito): void
+{
+    foreach ($carrito as $idProd => $cant) {
+        validarStockAgregar((int) $idProd, 0, (int) $cant);
+    }
+}
+
+/** Resta del stock las unidades de un carrito (se llama al crear el pedido). */
+function descontarStock(array $carrito): void
+{
+    $d = &datosRef();
+    foreach ($carrito as $idProd => $cant) {
+        if (isset($d['productos'][(int) $idProd])) {
+            $d['productos'][(int) $idProd]['stock'] = max(0, (int) ($d['productos'][(int) $idProd]['stock'] ?? 0) - (int) $cant);
+        }
+    }
 }
 
 /** Total de un carrito [idProducto => cantidad] usando los precios del catalogo. */
@@ -402,6 +554,9 @@ function cambiarEstadoMesa(int $idMesa, string $estado): void
  */
 function crearPedido(array $c, array $carrito): int
 {
+    // Primero validamos el stock: si falta alguno, no se crea nada
+    validarStockCarrito($carrito);
+
     $id = siguienteId('pedidos');
     $d = &datosRef();
     $d['pedidos'][$id] = [
@@ -431,6 +586,8 @@ function crearPedido(array $c, array $carrito): int
             'preparado'   => 0,
         ];
     }
+    // Cada plato pedido se resta del stock disponible
+    descontarStock($carrito);
     return $id;
 }
 

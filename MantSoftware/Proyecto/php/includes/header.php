@@ -58,6 +58,7 @@ $logueado    = ($rolActual !== null);
 
         <?php if ($rolActual === 'supervisor' || $rolActual === 'gerente'): ?>
             <a href="<?= APP_URL ?>pages/secciones.php" class="main-nav-item">Secciones</a>
+            <a href="<?= APP_URL ?>pages/inventario.php" class="main-nav-item">Inventario</a>
         <?php endif; ?>
 
         <?php if ($rolActual === 'gerente'): ?>

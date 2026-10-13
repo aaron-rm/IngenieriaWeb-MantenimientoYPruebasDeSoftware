@@ -1,0 +1,56 @@
+/* inventario.css — Vista de manejo de stock (supervisor / gerente) */
+
+.inv-resumen {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+.inv-stat {
+    background: var(--card-bg, #fff);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+}
+.inv-stat-num { font-size: 24px; font-weight: 700; }
+.inv-stat-lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; }
+.inv-stat.warn   .inv-stat-num { color: #d97706; }
+.inv-stat.danger .inv-stat-num { color: #dc2626; }
+
+.inv-nuevo, .inv-tabla-wrap { margin-bottom: 16px; }
+.inv-titulo { font-weight: 700; margin-bottom: 10px; }
+
+.inv-form-nuevo { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.inv-form-nuevo input[type=text],
+.inv-form-nuevo input[type=number],
+.inv-form-nuevo select,
+.inv-tabla input[type=text],
+.inv-tabla input[type=number],
+.inv-tabla select {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--input-border, #d1d5db);
+    font-size: 13px;
+}
+.inv-check { font-size: 12px; display: flex; align-items: center; gap: 4px; }
+
+.inv-tabla { width: 100%; border-collapse: collapse; font-size: 13px; }
+.inv-tabla th {
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--text-muted);
+    padding: 8px 6px;
+    border-bottom: 2px solid var(--card-border);
+}
+.inv-tabla td { padding: 6px; border-bottom: 1px solid var(--card-border); vertical-align: middle; }
+
+.inv-badge { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 20px; }
+.inv-badge.stock-ok  { background: #eaf7ec; color: #146c2e; }
+.inv-badge.stock-low { background: #fff4e0; color: #b45309; }
+.inv-badge.stock-out { background: #fdecea; color: #b3261e; }
+
+.inv-btn-del { font-size: 11px; color: #b3261e; }
